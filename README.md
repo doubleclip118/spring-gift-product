@@ -1,4 +1,5 @@
 spring-gift-product
 구현
-1. get으로 호출했을때 return으로 전체 목록이 가는 기능 구현
-2. product DTO 작성
+1.DTO만들기
+2.crud 구현하기
+3.timeleaf 사용하기

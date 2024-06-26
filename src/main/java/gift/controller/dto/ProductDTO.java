@@ -4,6 +4,7 @@ public class ProductDTO {
     private Long id;
     private String name;
     private double price;
+
     private String imageUrl;
     public ProductDTO(Long id, String name, double price, String imageUrl) {
         this.id = id;
