@@ -1,72 +1,61 @@
 package gift.controller;
 
-import gift.dto.ProductDTO;
-import jakarta.websocket.server.PathParam;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-import org.apache.coyote.Response;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import gift.controller.dto.ProductDTO;
+import gift.domain.Product;
+import gift.service.GiftService;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.*;
 
-@RestController
-
-@RequestMapping("/api")
+@Controller
+@RequestMapping("/products")
 public class GiftController {
+    private final GiftService giftService;
 
-    final Map<Long,ProductDTO> map = new HashMap<>();
-//    Long id = 1L;
-
-    @GetMapping("/products/{id}")
-    public ResponseEntity<ProductDTO> getProduct(@PathVariable("id") Long id){
-        if (map.containsKey(id)){
-            ResponseEntity.ok(map.get(id));
-        }
-        return ResponseEntity.notFound().build();
+    public GiftController(GiftService giftService) {
+        this.giftService = giftService;
     }
 
-    @GetMapping("/products")
-    public ResponseEntity<List<ProductDTO>> getAllProduct(){
-        if (!map.isEmpty()){
-            return ResponseEntity.ok(map.values().stream().collect(Collectors.toList()));
-        }
-        return ResponseEntity.notFound().build();
+//    @GetMapping("/{id}")
+//    public String getProduct(@PathVariable Long id, Model model){
+//        model.addAttribute("product", giftService.getProduct(id));
+//        return "detail";
+//    }
+
+    @GetMapping("/new")
+    public String newProductForm(Model model) {
+        model.addAttribute("product", new ProductDTO());
+        return "add";
     }
 
-    @PostMapping("/products")
-    public ResponseEntity<ProductDTO> postProducts(@RequestBody ProductDTO productDTO){
-        if (map.containsKey(productDTO.getId())){
-            return ResponseEntity.status(HttpStatus.CONFLICT).build();
-        }
-        map.put(productDTO.getId(),productDTO);
-        return ResponseEntity.ok(productDTO);
+    @GetMapping
+    public String getAllProduct(Model model){
+        model.addAttribute("products", giftService.getAllProduct());
+        return "list";
     }
 
-    @PutMapping("/products/")
-    public ResponseEntity<ProductDTO> putProduct(@RequestBody ProductDTO productDTO) {
-        if (!map.containsKey(productDTO.getId())) {
-            return ResponseEntity.notFound().build();
-        }
-        map.put(productDTO.getId(), productDTO);
-        return ResponseEntity.ok(productDTO);
+    @PostMapping
+    public String postProduct(@ModelAttribute ProductDTO productDTO){
+        giftService.postProducts(productDTO);
+        return "redirect:/products";
     }
 
-    @DeleteMapping("/products")
-    public ResponseEntity<String> deleteProducts(@RequestParam Long id){
-        if (map.containsKey(id)){
-            map.remove(id);
-            ResponseEntity.ok("delete");
-        }
-        return ResponseEntity.notFound().build();
+    @PostMapping("/update/{id}")
+    public String updateProduct(@PathVariable Long id, @ModelAttribute ProductDTO productDTO) {
+        giftService.putProducts(productDTO,id);
+        return "redirect:/products";
+    }
+
+    @GetMapping("/edit/{id}")
+    public String editProductForm(@PathVariable Long id, Model model) {
+        Product product = giftService.getProduct(id);
+        model.addAttribute("product", product);
+        return "form";
+    }
+
+    @PostMapping("/delete/{id}")
+    public String deleteProduct(@PathVariable Long id) {
+        giftService.deleteProducts(id);
+        return "redirect:/products";
     }
 }
